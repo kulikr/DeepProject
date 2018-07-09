@@ -1,4 +1,4 @@
-
+import tensorflow as tf
 from keras.models import Model
 from keras.layers import Input, Activation, Concatenate, Dropout, Convolution2D, MaxPooling2D,GlobalAveragePooling2D
 
@@ -13,19 +13,19 @@ def create_fire(input, s_1x1, e_1x1, e_3x3, name="fire"):
     :param name:  The name of the created Fire module
     :return: The created fire module
     """
+    with tf.name_scope(name):
+        squeeze = Convolution2D(
+            s_1x1, (1, 1), activation='relu', kernel_initializer='glorot_uniform',
+            padding='same', name=name+'_squeeze')(input)
+        expand_1x1 = Convolution2D(
+            e_1x1, (1, 1), activation='relu', kernel_initializer='glorot_uniform',
+            padding='same', name=name+'_expand_1x1')(squeeze)
+        expand_3x3 = Convolution2D(
+            e_3x3, (3, 3), activation='relu', kernel_initializer='glorot_uniform',
+            padding='same', name=name+'_expand_3x3')(squeeze)
 
-    squeeze = Convolution2D(
-        s_1x1, (1, 1), activation='relu', kernel_initializer='glorot_uniform',
-        padding='same', name=name+'_squeeze')(input)
-    expand_1x1 = Convolution2D(
-        e_1x1, (1, 1), activation='relu', kernel_initializer='glorot_uniform',
-        padding='same', name=name+'_expand_1x1')(squeeze)
-    expand_3x3 = Convolution2D(
-        e_3x3, (3, 3), activation='relu', kernel_initializer='glorot_uniform',
-        padding='same', name=name+'_expand_3x3')(squeeze)
-
-    concatenated = Concatenate(axis=3)([expand_1x1, expand_3x3])
-    return concatenated
+        concatenated = Concatenate(axis=3)([expand_1x1, expand_3x3])
+        return concatenated
 
 
 def squeeze_net(nb_classes, inputs=(224, 224, 3)):
@@ -64,7 +64,7 @@ def squeeze_net(nb_classes, inputs=(224, 224, 3)):
 
     fire9_dropout = Dropout(0.5, name='fire9_dropout')(fire9)
 
-    conv10 = Convolution2D(nb_classes, (1, 1), activation='relu', kernel_initializer='glorot_uniform')(fire9_dropout)
+    conv10 = Convolution2D(nb_classes, (1, 1), activation='relu', kernel_initializer='glorot_uniform', name='conv10')(fire9_dropout)
 
     global_avgpool10 = GlobalAveragePooling2D()(conv10)
     softmax = Activation("softmax", name='softmax')(global_avgpool10)

@@ -5,9 +5,10 @@ import Main
 
 
 # input image dimensions
-img_rows, img_cols = 28, 28
+img_rows, img_cols = 32, 32
 batch_size = 256
 num_classes = 10
+channels = 3
 epochs = 1
 
 tbCallBack = keras.callbacks.TensorBoard(log_dir='./Graph', histogram_freq=0,
@@ -16,9 +17,9 @@ tbCallBack = keras.callbacks.TensorBoard(log_dir='./Graph', histogram_freq=0,
 # the data, split between train and test sets
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 
-x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
-x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
-input_shape = (img_rows, img_cols, 1)
+x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, channels)
+x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, channels)
+input_shape = (img_rows, img_cols, channels)
 
 x_train = x_train.astype('float32')
 x_test = x_test.astype('float32')
@@ -30,7 +31,7 @@ x_test /= 255
 y_train = keras.utils.to_categorical(y_train, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
-model = Main.squeeze_net(num_classes,(img_rows,img_cols,3))
+model = Main.squeeze_net(num_classes,(img_rows,img_cols,channels))
 # plot_model(model,'model.png')
 
 model.compile(loss=keras.losses.categorical_crossentropy,
