@@ -2,34 +2,36 @@ import keras
 from keras.datasets import mnist,cifar10
 from keras.utils import plot_model
 import Main
+import DataUtils as d_utils
 
 
 # input image dimensions
-img_rows, img_cols = 32, 32
-batch_size = 256
-num_classes = 10
-channels = 3
-epochs = 1
+img_rows, img_cols = d_utils.IMAGE_SIZE, d_utils.IMAGE_SIZE
+batch_size = d_utils.BATCH_SIZE
+num_classes = d_utils.NUM_CLASSES
+channels = d_utils.NUM_CHANNELS
+epochs = 5
 
 tbCallBack = keras.callbacks.TensorBoard(log_dir='./Graph', histogram_freq=0,
           write_graph=True, write_images=False)
 
-# the data, split between train and test sets
-(x_train, y_train), (x_test, y_test) = cifar10.load_data()
+x_train , y_train, training_le = d_utils.load_training_images()
+
+x_val , y_val = d_utils.load_validation_images(training_le)
 
 x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, channels)
-x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, channels)
+x_val = x_val.reshape(x_val.shape[0], img_rows, img_cols, channels)
 input_shape = (img_rows, img_cols, channels)
 
 x_train = x_train.astype('float32')
-x_test = x_test.astype('float32')
+x_test = x_val.astype('float32')
 
 x_train /= 255
 x_test /= 255
 
 # convert class vectors to binary class matrices
 y_train = keras.utils.to_categorical(y_train, num_classes)
-y_test = keras.utils.to_categorical(y_test, num_classes)
+y_test = keras.utils.to_categorical(y_val, num_classes)
 
 model = Main.squeeze_net(num_classes,(img_rows,img_cols,channels))
 # plot_model(model,'model.png')
