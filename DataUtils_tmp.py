@@ -6,45 +6,58 @@ import tensorflow as tf
 import matplotlib.image as mpimg
 from PIL import Image
 from sklearn import preprocessing
+from keras.preprocessing.image import load_img
+from keras.preprocessing.image import img_to_array
+import matplotlib.pyplot as plt
+import time
 
 
-BATCH_SIZE = 20
-NUM_CLASSES = 3
-NUM_IMAGES_PER_CLASS = 500
+BATCH_SIZE = 10
+NUM_CLASSES = 2
+NUM_IMAGES_PER_CLASS = 183
 NUM_IMAGES = NUM_CLASSES * NUM_IMAGES_PER_CLASS
-TRAINING_IMAGES_DIR = "C:\\Users\\royku\\Desktop\\tiny imagenet\\tiny-imagenet-200\\train\\"
+TRAINING_IMAGES_DIR = "C:\\Users\\royku\\Desktop\\tmp_data\\train\\"
 TRAIN_SIZE = NUM_IMAGES
 
-NUM_VAL_IMAGES = 9832
-VAL_IMAGES_DIR = "C:\\Users\\royku\\Desktop\\tiny imagenet\\tiny-imagenet-200\\val\\"
-IMAGE_SIZE = 64
+NUM_VAL_IMAGES = 10000
+NUM_IMAGES_PER_CLASS_VAL = 50
+
+VAL_IMAGES_DIR = "C:\\Users\\royku\\Desktop\\tmp_data\\val\\"
+# VAL_IMAGES_DIR = "C:\\Users\\royku\\Desktop\\tiny imagenet\\tiny-imagenet-200\\val\\"
+IMAGE_SIZE = 224
 NUM_CHANNELS = 3
 IMAGE_ARR_SIZE = IMAGE_SIZE * IMAGE_SIZE * NUM_CHANNELS
+class_names = []
 
+def load_training_images(images_per_class=NUM_IMAGES_PER_CLASS, dirpath=TRAINING_IMAGES_DIR):
 
-def load_training_images(images_per_class=500):
     image_index = 0
     # init images array with the suitable sizes
-    images = np.ndarray(shape=(NUM_IMAGES, IMAGE_ARR_SIZE))
+    images = np.ndarray(shape=(NUM_CLASSES*images_per_class, IMAGE_ARR_SIZE))
     names = []
     labels = []
-    print("Loading training images from ", TRAINING_IMAGES_DIR)
+    print("Loading training images from ", dirpath)
 
-    i=0
     # Loop through all the classes directories
-    for type in os.listdir(TRAINING_IMAGES_DIR):
-        if i == NUM_CLASSES:
-            break
-        i+=1
-        if os.path.isdir(TRAINING_IMAGES_DIR + type + '/images/'):
-            type_images = os.listdir(TRAINING_IMAGES_DIR + type + '/images/')
+    for type in os.listdir(dirpath):
+        class_names.append(type)
+
+        if os.path.isdir(dirpath + type + '/images/'):
+            type_images = os.listdir(dirpath + type + '/images/')
 
             # Loop through all the images of a type directory
             in_class_index = 0;
             for image in type_images:
-                image_file = os.path.join(TRAINING_IMAGES_DIR, type + '/images/', image)
+                image_file = os.path.join(dirpath, type + '/images/', image)
 
-                image_data = np.asarray(Image.open(image_file))
+                # load an image in PIL format
+                original = load_img(image_file, target_size=(IMAGE_SIZE, IMAGE_SIZE))
+
+                # convert the PIL image to a numpy array
+                # IN PIL - image is in (width, height, channel)
+                # In Numpy - image is in (height, width, channel)
+                image_data = img_to_array(original)
+                # image_data = np.asarray(Image.open(image_file))
 
                 # Validate image size is correct
                 if (image_data.shape == (IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)):
@@ -74,14 +87,14 @@ def load_training_images(images_per_class=500):
 
 
 def get_label_from_name(data, name):
-    for idx, row in data.iterrows():
-        if (row['File'] == name):
-            return row['Class']
-
+    class_name = data[data['File'] == name]['Class']
+    if class_name.size != 0:
+        return class_name.iloc[0]
     return None
 
 
-def load_validation_images(training_le, batch_size=5):
+def load_validation_images(training_le, batch_size=NUM_VAL_IMAGES):
+    global class_names
     print("Loading validation images from ", VAL_IMAGES_DIR)
 
     validation_data = pd.read_csv(VAL_IMAGES_DIR + 'val_annotations.txt', sep='\t', header=None,
@@ -91,26 +104,37 @@ def load_validation_images(training_le, batch_size=5):
     names = []
     image_index = 0
 
-    images = np.ndarray(shape=(batch_size, IMAGE_ARR_SIZE))
+    images = np.ndarray(shape=(NUM_IMAGES_PER_CLASS_VAL*NUM_CLASSES, IMAGE_ARR_SIZE))
     val_images = os.listdir(VAL_IMAGES_DIR + '/images/')
 
     # Loop through all the images of a val directory
-    batch_index = 0;
+    batch_index = 0
 
     for image in val_images:
         image_file = os.path.join(VAL_IMAGES_DIR, 'images/', image)
+        label = get_label_from_name(validation_data, image)
+        if label not in class_names:
+            continue
 
+        # load an image in PIL format
+        original = load_img(image_file, target_size=(IMAGE_SIZE, IMAGE_SIZE))
+
+        # convert the PIL image to a numpy array
+        # IN PIL - image is in (width, height, channel)
+        # In Numpy - image is in (height, width, channel)
+        image_data = img_to_array(original)
         # reading the images as they are; no normalization, no color editing
-        image_data = np.asarray(Image.open(image_file))
+        # image_data = np.asarray(Image.open(image_file))
         if (image_data.shape == (IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS)):
             images[image_index, :] = image_data.flatten()
+            print("Image Num :" + str(image_index))
             image_index += 1
-            labels.append(get_label_from_name(validation_data, image))
+            labels.append(label)
             names.append(image)
             batch_index += 1
 
         if (batch_index >= batch_size):
-            break;
+            break
 
     labels = np.asarray(labels)
 
