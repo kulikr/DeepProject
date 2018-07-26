@@ -1,15 +1,9 @@
 import os
-import matplotlib
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-import matplotlib.image as mpimg
-from PIL import Image
 from sklearn import preprocessing
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
-import matplotlib.pyplot as plt
-import time
 
 
 BATCH_SIZE = 10
