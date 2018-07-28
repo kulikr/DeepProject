@@ -60,28 +60,32 @@ def squeeze_net_complex_by_pass(nb_classes, inputs=(224, 224, 3)):
 
     # Fire modules creation - 'second batch'
     # Complex ByPass - change fire3 with 1X1X256 filter
-    fire3_complex = Convolution2D(
-        256, (1, 1), activation='relu', kernel_initializer='glorot_uniform', padding='same', name='fire3_complex')(bypass3)
-    bypass4 = merge([fire4,fire3_complex],mode='sum')
+    conv2_complex = Convolution2D(
+        256, (1, 1), activation='relu', kernel_initializer='glorot_uniform', padding='same', name='conv2_complex')(conv1_complex)
+    bypass4 = merge([conv2_complex,fire4],mode='sum')
     maxpool4 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='maxpool4')(bypass4)
+
     fire5 = create_fire(input=maxpool4, s_1x1=32, e_1x1=128, e_3x3=128, name="fire5")
+
     # ByPass - for fire6 change the input to maxpool4 + fire5
     bypass5 = merge([maxpool4,fire5],mode='sum')
     fire6 = create_fire(input=bypass5, s_1x1=48, e_1x1=192, e_3x3=192, name="fire6")
+
     # Complex ByPass - change fire6 with 1X1X384 filter
-    fire6_complex = Convolution2D(
-        384, (1, 1), activation='relu', kernel_initializer='glorot_uniform', padding='same', name='fire6_complex')(fire6)
-    bypass6 = merge([fire6, fire6_complex], mode='sum')
+    conv3_complex = Convolution2D(
+        384, (1, 1), activation='relu', kernel_initializer='glorot_uniform', padding='same', name='conv3_complex')(maxpool4)
+    bypass6 = merge([conv3_complex,fire6], mode='sum')
     fire7 = create_fire(input=bypass6, s_1x1=48, e_1x1=192, e_3x3=192, name="fire7")
+
     # ByPass - for fire8 change the input to fire6 + fire7
     bypass7 = merge([fire6,fire7],mode='sum')
     fire8 = create_fire(input=bypass7, s_1x1=64, e_1x1=256, e_3x3=256, name="fire8")
 
     # Complex ByPass - change fire8 with 1X1X512 filter
-    fire8_complex = Convolution2D(
-        512, (1, 1), activation='relu', kernel_initializer='glorot_uniform', padding='same', name='fire8_complex')(
-        fire8)
-    bypass8 = merge([fire8, fire8_complex], mode='sum')
+    conv4_complex = Convolution2D(
+        512, (1, 1), activation='relu', kernel_initializer='glorot_uniform', padding='same', name='conv4_complex')(
+        conv3_complex)
+    bypass8 = merge([conv4_complex,fire8], mode='sum')
     maxpool8 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='maxpool8')(bypass8)
 
     fire9 = create_fire(input=maxpool8, s_1x1=64, e_1x1=256, e_3x3=256, name="fire9")
