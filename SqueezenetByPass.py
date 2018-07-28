@@ -28,7 +28,7 @@ def create_fire(input, s_1x1, e_1x1, e_3x3, name="fire"):
         return concatenated
 
 
-def squeeze_net(nb_classes, inputs=(224, 224, 3)):
+def squeeze_net_by_pass(nb_classes, inputs=(224, 224, 3)):
     """
     This function returns a an implementation of 'SqueezeNet' architecture using keras Model object
     :param nb_classes: The number of classes

@@ -1,5 +1,5 @@
 import keras
-import Main
+import Squeezenet
 import DataUtils as d_utils
 from keras.callbacks import LearningRateScheduler
 import math
@@ -57,7 +57,7 @@ y_train = keras.utils.to_categorical(y_train, num_classes)
 y_val = keras.utils.to_categorical(y_val, num_classes)
 
 input_shape = (img_rows, img_cols, channels)
-model = Main.squeeze_net(num_classes, input_shape)
+model = Squeezenet.squeeze_net(num_classes, input_shape)
 
 model.compile(loss='categorical_crossentropy',
               optimizer=keras.optimizers.SGD(lr=0.001, decay=0.0002, momentum=0.9),

@@ -5,7 +5,7 @@ from sklearn import preprocessing
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
 
-BATCH_SIZE = 30
+
 NUM_CLASSES = 5
 NUM_IMAGES_PER_CLASS = 500
 NUM_IMAGES = NUM_CLASSES * NUM_IMAGES_PER_CLASS

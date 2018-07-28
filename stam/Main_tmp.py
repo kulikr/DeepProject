@@ -1,5 +1,5 @@
 import keras
-import Main
+import Squeezenet
 import DataUtils_tmp as d_utils
 from keras.applications import vgg16
 
@@ -40,7 +40,7 @@ y_train = keras.utils.to_categorical(y_train, num_classes)
 y_val = keras.utils.to_categorical(y_val, num_classes)
 
 
-model = Main.squeeze_net(num_classes, input_shape)
+model = Squeezenet.squeeze_net(num_classes, input_shape)
 # model = vgg_model
 
 model.compile(loss=keras.losses.categorical_crossentropy,
