@@ -3,7 +3,7 @@ from Squeezenet import squeeze_net
 from SqueezenetByPass import squeeze_net_by_pass
 from SqueezenetComplexByPass import squeeze_net_complex_by_pass
 import DataUtils as d_utils
-from keras.callbacks import LearningRateScheduler
+import Alexnet
 import math
 
 # input image dimensions - from data utils
@@ -39,15 +39,17 @@ input_shape = (img_rows, img_cols, channels)
 def run(model_name="squeezenet"):
 
     # Tensorboard callback
-    tbCallBack = keras.callbacks.TensorBoard(log_dir='./Graph', histogram_freq=0,
+    tbCallBack = keras.callbacks.TensorBoard(log_dir='./tensorboard/'+model_name, histogram_freq=0,
                                              write_graph=True, write_images=False)
 
     if model_name == "squeezenet":
         model = squeeze_net(num_classes, input_shape)
     elif model_name == "squeezenet_by_pass":
         model = squeeze_net_by_pass(num_classes, input_shape)
-    else:
+    elif model_name == "squeezenet_complex_by_pass":
         model = squeeze_net_complex_by_pass(num_classes, input_shape)
+    else:
+        model= Alexnet.AlexNet()
 
     model.compile(loss=params['loss'],
                   optimizer=keras.optimizers.SGD(lr=params['base_lr'], decay=params['decay_lr'], momentum=params['momentum']),
@@ -57,9 +59,17 @@ def run(model_name="squeezenet"):
               batch_size=params['batch_size'],
               epochs=params['epochs'],
               verbose=1,
+              validation_data=(x_val, y_val),
               callbacks=[tbCallBack])
 
     score = model.evaluate(x_val, y_val, verbose=0)
     print('Results for ' + model_name + ':')
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
+
+
+# run('squeezenet')
+# # params['base_lr'] = 0.001
+# run('squeezenet_by_pass')
+run('squeezenet_complex_by_pass')
+# run('Alexnet')

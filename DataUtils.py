@@ -6,7 +6,7 @@ from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
 
 
-NUM_CLASSES = 5
+NUM_CLASSES = 2
 NUM_IMAGES_PER_CLASS = 500
 NUM_IMAGES = NUM_CLASSES * NUM_IMAGES_PER_CLASS
 TRAINING_IMAGES_DIR = "./data/tiny-imagenet-200/train/"
@@ -51,11 +51,7 @@ def load_training_images(images_per_class=NUM_IMAGES_PER_CLASS):
                 # load an image in PIL format
                 original = load_img(image_file, target_size=(IMAGE_SIZE, IMAGE_SIZE))
 
-                # convert the PIL image to a numpy array
-                # IN PIL - image is in (width, height, channel)
-                # In Numpy - image is in (height, width, channel)
                 image_data = img_to_array(original)
-                # image_data = np.asarray(Image.open(image_file))
 
                 # Validate image size is correct
                 if image_data.shape == (IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS):
@@ -113,19 +109,13 @@ def load_validation_images(training_le, batch_size=NUM_VAL_IMAGES):
         if label not in class_names:
             continue
 
-        # load an image in PIL format
+        # load an image
         original = load_img(image_file, target_size=(IMAGE_SIZE, IMAGE_SIZE))
 
-        # convert the PIL image to a numpy array
-        # IN PIL - image is in (width, height, channel)
-        # In Numpy - image is in (height, width, channel)
         image_data = img_to_array(original)
 
-        # reading the images as they are; no normalization, no color editing
-        # image_data = np.asarray(Image.open(image_file))
         if image_data.shape == (IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS):
             images[image_index, :] = image_data.flatten()
-            print("Image Num :" + str(image_index))
             image_index += 1
             labels.append(label)
             names.append(image)
