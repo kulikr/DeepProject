@@ -1,5 +1,5 @@
 import keras
-from Squeezenet import squeeze_net
+from TinySqueezenet import tiny_squeeze_net
 import DataUtils as d_utils
 
 # Models parameters
@@ -11,7 +11,7 @@ params = {'loss': 'categorical_crossentropy',
           'batch_size': 1000}
 
 
-def run(model_name="squeezenet"):
+def run(model_name="tiny_squeezenet"):
     # input image dimensions - from data utils
     img_rows, img_cols = d_utils.IMAGE_SIZE, d_utils.IMAGE_SIZE
     num_classes = d_utils.NUM_CLASSES
@@ -39,13 +39,12 @@ def run(model_name="squeezenet"):
                                              write_graph=True, write_images=False)
 
     # Build the model
-    model = squeeze_net(num_classes, input_shape)
+    model = tiny_squeeze_net(num_classes, input_shape)
 
     # Compile the model
     model.compile(loss=params['loss'],
                   optimizer=keras.optimizers.SGD(lr=params['base_lr'], decay=params['decay_lr'],
-                                                 momentum=params['momentum']),
-                  metrics=['accuracy'])
+                                                 momentum=params['momentum']), metrics=['accuracy'])
 
     # Train the model
     model.fit(x_train, y_train,

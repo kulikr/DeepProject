@@ -5,32 +5,37 @@ from sklearn import preprocessing
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import img_to_array
 
+################# Parameters for the data ##########################
 
-NUM_CLASSES = 2
+NUM_CLASSES = 200
+
 NUM_IMAGES_PER_CLASS = 500
 NUM_IMAGES = NUM_CLASSES * NUM_IMAGES_PER_CLASS
 TRAINING_IMAGES_DIR = "./data/tiny-imagenet-200/train/"
 TRAIN_SIZE = NUM_IMAGES
 
-NUM_VAL_IMAGES = 10000
-NUM_IMAGES_PER_CLASS_VAL = 50
+NUM_IMAGES_PER_CLASS_TEST = 50
+TEST_IMAGES_DIR = "./data/tiny-imagenet-200/test/"
+TEST_SIZE = NUM_CLASSES * NUM_IMAGES_PER_CLASS_TEST
 
-VAL_IMAGES_DIR = "./data/tiny-imagenet-200/val/"
 IMAGE_SIZE = 64
 NUM_CHANNELS = 3
 IMAGE_ARR_SIZE = IMAGE_SIZE * IMAGE_SIZE * NUM_CHANNELS
 class_names = []
 
 
-def load_training_images(images_per_class=NUM_IMAGES_PER_CLASS):
+#####################################################################
+
+def load_training_images():
     global class_names
 
     image_index = 0
+
     # init images array with the suitable sizes
     images = np.ndarray(shape=(NUM_IMAGES, IMAGE_ARR_SIZE))
     names = []
     labels = []
-    print("Loading training images from ", TRAINING_IMAGES_DIR)
+    print("Loading train images from ", TRAINING_IMAGES_DIR)
 
     i = 0
     # Loop through all the classes directories
@@ -62,7 +67,7 @@ def load_training_images(images_per_class=NUM_IMAGES_PER_CLASS):
 
                     image_index += 1
                     in_class_index += 1
-                if in_class_index >= images_per_class:
+                if in_class_index >= NUM_IMAGES_PER_CLASS:
                     break
 
     labels = np.asarray(labels)
@@ -74,38 +79,37 @@ def load_training_images(images_per_class=NUM_IMAGES_PER_CLASS):
     le = preprocessing.LabelEncoder()
     training_le = le.fit(labels)
     training_labels_encoded = training_le.transform(labels)
-    print("Finished loading training images.")
+    print("Finished loading train images.")
 
     return images, training_labels_encoded, training_le
 
 
-def get_label_from_name(data, name):
-    class_name = data[data['File'] == name]['Class']
+def get_label_from_name(meta_data, name):
+    class_name = meta_data[meta_data['File'] == name]['Class']
     if class_name.size != 0:
         return class_name.iloc[0]
     return None
 
 
-def load_validation_images(training_le, batch_size=NUM_VAL_IMAGES):
+def load_test_images(training_le):
     global class_names
-    print("Loading validation images from ", VAL_IMAGES_DIR)
+    print("Loading test images from ", TEST_IMAGES_DIR)
 
-    validation_data = pd.read_csv(VAL_IMAGES_DIR + 'val_annotations.txt', sep='\t', header=None,
-                                  names=['File', 'Class', 'X', 'Y', 'H', 'W'])
+    test_meta_data = pd.read_csv(TEST_IMAGES_DIR + 'test_annotations.txt', sep='\t', header=None,
+                                 names=['File', 'Class', 'X', 'Y', 'H', 'W'])
 
     labels = []
     names = []
-    image_index = 0
 
-    images = np.ndarray(shape=(NUM_IMAGES_PER_CLASS_VAL * NUM_CLASSES, IMAGE_ARR_SIZE))
-    val_images = os.listdir(VAL_IMAGES_DIR + '/images/')
+    images = np.ndarray(shape=(NUM_IMAGES_PER_CLASS_TEST * NUM_CLASSES, IMAGE_ARR_SIZE))
+    test_images = os.listdir(TEST_IMAGES_DIR + '/images/')
 
     # Loop through all the images of a val directory
-    batch_index = 0
+    image_index = 0
 
-    for image in val_images:
-        image_file = os.path.join(VAL_IMAGES_DIR, 'images/', image)
-        label = get_label_from_name(validation_data, image)
+    for image in test_images:
+        image_file = os.path.join(TEST_IMAGES_DIR, 'images/', image)
+        label = get_label_from_name(test_meta_data, image)
         if label not in class_names:
             continue
 
@@ -116,17 +120,16 @@ def load_validation_images(training_le, batch_size=NUM_VAL_IMAGES):
 
         if image_data.shape == (IMAGE_SIZE, IMAGE_SIZE, NUM_CHANNELS):
             images[image_index, :] = image_data.flatten()
-            image_index += 1
             labels.append(label)
             names.append(image)
-            batch_index += 1
+            image_index += 1
 
-        if batch_index >= batch_size:
+        if image_index >= TEST_SIZE:
             break
 
     labels = np.asarray(labels)
 
-    val_labels_encoded = training_le.transform(labels)
-    print("Finished loading validation images.")
+    test_labels_encoded = training_le.transform(labels)
+    print("Finished loading test images.")
 
-    return images, val_labels_encoded
+    return images, test_labels_encoded

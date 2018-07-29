@@ -1,17 +1,17 @@
 import keras
-from Squeezenet import squeeze_net
+from SqueezenetComplexByPass import squeeze_net_complex_by_pass
 import DataUtils as d_utils
 
 # Models parameters
 params = {'loss': 'categorical_crossentropy',
-          'base_lr': 0.02,
+          'base_lr': 0.001,
           'decay_lr': 0.0002,
           'momentum': 0.9,
           'epochs': 300,
           'batch_size': 1000}
 
 
-def run(model_name="squeezenet"):
+def run(model_name="squeezenet_complex_by_pass"):
     # input image dimensions - from data utils
     img_rows, img_cols = d_utils.IMAGE_SIZE, d_utils.IMAGE_SIZE
     num_classes = d_utils.NUM_CLASSES
@@ -39,7 +39,7 @@ def run(model_name="squeezenet"):
                                              write_graph=True, write_images=False)
 
     # Build the model
-    model = squeeze_net(num_classes, input_shape)
+    model = squeeze_net_complex_by_pass(num_classes, input_shape)
 
     # Compile the model
     model.compile(loss=params['loss'],

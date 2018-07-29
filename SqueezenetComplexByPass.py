@@ -33,7 +33,7 @@ def squeeze_net_complex_by_pass(nb_classes, inputs=(224, 224, 3)):
     This function returns a an implementation of 'SqueezeNet' architecture using keras Model object
     :param nb_classes: The number of classes
     :param inputs: The dimensions of the input
-    :return: A Keras Model object of SqueezeNet
+    :return: A Keras Model object of SqueezeNet complex By Pass
     """
     input_layer = Input(shape=inputs)
 

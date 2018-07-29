@@ -1,6 +1,6 @@
 import tensorflow as tf
 from keras.models import Model
-from keras.layers import merge,Input, Activation, Concatenate, Dropout, Convolution2D, MaxPooling2D,GlobalAveragePooling2D
+from keras.layers import Input, Activation, Concatenate, Dropout, Convolution2D, MaxPooling2D,GlobalAveragePooling2D
 
 
 def create_fire(input, s_1x1, e_1x1, e_3x3, name="fire"):
@@ -28,12 +28,12 @@ def create_fire(input, s_1x1, e_1x1, e_3x3, name="fire"):
         return concatenated
 
 
-def squeeze_net_by_pass(nb_classes, inputs=(224, 224, 3)):
+def tiny_squeeze_net(nb_classes, inputs=(224, 224, 3)):
     """
     This function returns a an implementation of 'SqueezeNet' architecture using keras Model object
     :param nb_classes: The number of classes
     :param inputs: The dimensions of the input
-    :return: A Keras Model object of SqueezeNet By Pass
+    :return: A Keras Model object of Tiny SqueezeNet
     """
     input_layer = Input(shape=inputs)
 
@@ -48,30 +48,15 @@ def squeeze_net_by_pass(nb_classes, inputs=(224, 224, 3)):
     # Fire modules creation - 'first batch'
     fire2 = create_fire(input=maxpool1, s_1x1=16, e_1x1=64, e_3x3=64, name="fire2")
     fire3 = create_fire(input=fire2, s_1x1=16, e_1x1=64, e_3x3=64, name="fire3")
-    # ByPass - for fire4 change the input to fire2 + fire3
-    bypass3 = merge([fire2,fire3],mode='sum')
-    fire4 = create_fire(input=bypass3, s_1x1=32, e_1x1=128, e_3x3=128, name="fire4")
+    fire4 = create_fire(input=fire3, s_1x1=32, e_1x1=128, e_3x3=128, name="fire4")
 
-    maxpool4 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='maxpool4')(fire4)
-
-    # Fire modules creation - 'second batch'
-    fire5 = create_fire(input=maxpool4, s_1x1=32, e_1x1=128, e_3x3=128, name="fire5")
-    # ByPass - for fire6 change the input to maxpool4 + fire5
-    bypass5 = merge([maxpool4,fire5],mode='sum')
-    fire6 = create_fire(input=bypass5, s_1x1=48, e_1x1=192, e_3x3=192, name="fire6")
-    fire7 = create_fire(input=fire6, s_1x1=48, e_1x1=192, e_3x3=192, name="fire7")
-    # ByPass - for fire8 change the input to fire6 + fire7
-    bypass7 = merge([fire6,fire7],mode='sum')
-    fire8 = create_fire(input=bypass7, s_1x1=64, e_1x1=256, e_3x3=256, name="fire8")
-
-    maxpool8 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='maxpool8')(fire8)
+    maxpool8 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2), name='maxpool8')(fire4)
 
     fire9 = create_fire(input=maxpool8, s_1x1=64, e_1x1=256, e_3x3=256, name="fire9")
 
     fire9_dropout = Dropout(0.5, name='fire9_dropout')(fire9)
-    # ByPass - for conv10 change the input to maxpool8 + fire9_dropout
-    bypass9 = merge([maxpool8,fire9_dropout],mode='sum')
-    conv10 = Convolution2D(nb_classes, (1, 1), activation='relu', kernel_initializer='glorot_uniform', name='conv10')(bypass9)
+
+    conv10 = Convolution2D(nb_classes, (1, 1), activation='relu', kernel_initializer='glorot_uniform', name='conv10')(fire9_dropout)
 
     global_avgpool10 = GlobalAveragePooling2D()(conv10)
     softmax = Activation("softmax", name='softmax')(global_avgpool10)
